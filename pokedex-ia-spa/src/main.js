@@ -1,24 +1,57 @@
-import './styles/main.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+import { AppStore } from './store/AppStore.js';
+import { Router } from './services/Router.js';
+import { Header } from './components/Header.js';
+import { Footer } from './components/Footer.js';
+import { HomePage } from './components/HomePage.js';
+import { CatalogPage } from './components/CatalogPage.js';
+import { AIDetectorPage } from './components/AIDetectorPage.js';
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
-    </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+class App {
+    constructor() {
+        this.store = new AppStore();
+        this.router = new Router();
+        this.components = {
+            header: new Header(),
+            footer: new Footer(),
+            homePage: new HomePage(),
+            catalogPage: new CatalogPage(),
+            aiDetectorPage: new AIDetectorPage()
+        };
+        this.init();
+    }
 
-setupCounter(document.querySelector('#counter'))
+    init() {
+        this.setupComponents();
+        this.setupRoutes();
+        this.router.init();
+        console.log('Pokédex IA SPA initialized successfully!');
+    }
+
+    setupComponents() {
+        // Mount persistent components
+        document.getElementById('header-container').appendChild(this.components.header.render());
+        document.getElementById('footer-container').appendChild(this.components.footer.render());
+        
+        // Setup component communication
+        this.components.header.onNavigate = (route) => this.router.navigate(route);
+    }
+
+    setupRoutes() {
+        this.router.addRoute('/', () => this.renderPage('homePage'));
+        this.router.addRoute('/catalog', () => this.renderPage('catalogPage'));
+        this.router.addRoute('/ai-detector', () => this.renderPage('aiDetectorPage'));
+    }
+
+    renderPage(componentName) {
+        const mainContent = document.getElementById('main-content');
+        mainContent.innerHTML = '';
+        const component = this.components[componentName];
+        mainContent.appendChild(component.render());
+        component.onMount && component.onMount();
+    }
+}
+
+// Initialize app when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    new App();
+});
