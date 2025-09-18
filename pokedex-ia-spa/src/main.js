@@ -1,7 +1,7 @@
-import './src/styles/main.css'
-import javascriptLogo from './src/javascript.svg'
+import './styles/main.css'
+import javascriptLogo from './javascript.svg'
 import viteLogo from '/vite.svg'
-import { setupCounter } from './src/counter.js'
+import { setupCounter } from './counter.js'
 
 document.querySelector('#app').innerHTML = `
   <div>
