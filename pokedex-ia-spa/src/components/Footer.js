@@ -1,10 +1,11 @@
+//Renderización del pie de página
 export class Footer {
     render() {
         const footer = document.createElement('footer');
         footer.className = 'bg-gray-800 text-white py-8';
         footer.innerHTML = `
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <p class="mb-2">&copy; 2024 Pokédex IA. Proyecto educativo usando PokéAPI.</p>
+                <p class="mb-2">&copy; 2025 Pokédex IA. Proyecto educativo usando PokéAPI. Desarrollado por Anthony Sánchez</p>
                 <p class="text-sm text-gray-400">Construido con Vite, Tailwind CSS, TensorFlow.js y mucho ❤️</p>
                 <div class="mt-4 flex justify-center space-x-4">
                     <a href="#" class="text-gray-400 hover:text-white transition-colors">

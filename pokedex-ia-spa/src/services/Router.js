@@ -9,23 +9,33 @@ export class Router {
     }
 
     navigate(path) {
-        history.pushState(null, null, path);
-        this.handleRoute(path);
+        //  Solo actualiza el historial
+        history.pushState(null, null, path); 
+        this.handleRoute(); // Ahora el handleRoute maneja el ruteo.
     }
 
     handleRoute(path = window.location.pathname) {
-        const handler = this.routes.get(path) || this.routes.get('/');
-        this.currentRoute = path;
-        handler();
+        // Añadimos una verificación para evitar la renderización si la ruta es la misma.
+        if (this.currentRoute === path) {
+            return;
+        }
+
+        const handler = this.routes.get(path) || this.routes.get("/");
+        if (handler) {
+            this.currentRoute = path;
+            handler();
+        } else {
+            console.error('Ruta no encontrada:', path);
+        }
     }
 
     init() {
-        // Handle browser back/forward
-        window.addEventListener('popstate', () => {
+        // Llamando a handleRoute cuando cambia la ruta
+        window.addEventListener("popstate", () => {
             this.handleRoute();
         });
         
-        // Handle initial load
-        this.handleRoute();
+        // La primera renderización se hace cuando la página se carga
+        this.handleRoute(); 
     }
 }

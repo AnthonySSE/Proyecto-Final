@@ -3,16 +3,21 @@ export class PokemonModal {
         this.isOpen = false;
         this.currentPokemon = null;
         this.modal = null;
-        this.init();
+        
+        // Escuchar eventos personalizados como fallback
+        this.setupEventListeners();
     }
-
-    init() {
-        // Listen for modal open events
-        window.addEventListener('openPokemonModal', (e) => {
-            this.open(e.detail);
+    
+    setupEventListeners() {
+        // Escuchar evento personalizado de PokemonCard
+        document.addEventListener('openPokemonModal', (event) => {
+            console.log('📡 Received modal event:', event.detail);
+            if (event.detail && event.detail.pokemon) {
+                this.open(event.detail.pokemon);
+            }
         });
         
-        // Handle escape key
+        // Escuchar tecla Escape
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isOpen) {
                 this.close();
@@ -24,60 +29,75 @@ export class PokemonModal {
         if (this.modal) return this.modal;
         
         this.modal = document.createElement('div');
-        this.modal.className = 'fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm hidden items-center justify-center z-50';
+        this.modal.className = 'fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center z-50';
         this.modal.innerHTML = `
             <div class="bg-white rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto modal-content">
                 <div id="modal-body">
-                    <!-- Pokemon details will be inserted here -->
                 </div>
             </div>
         `;
 
-        // Close modal when clicking backdrop
+        // Click fuera del modal para cerrarlo
         this.modal.addEventListener('click', (e) => {
             if (e.target === this.modal) {
                 this.close();
             }
         });
 
-        // Prevent modal close when clicking content
+        // Prevenir cierre al hacer click en el contenido
         this.modal.querySelector('.modal-content').addEventListener('click', (e) => {
             e.stopPropagation();
         });
 
-        document.body.appendChild(this.modal);
+        // Agregar al DOM
+        const modalContainer = document.getElementById('modal-container') || document.body;
+        modalContainer.appendChild(this.modal);
+        
+        console.log('✅ Modal rendered and attached to DOM');
         return this.modal;
     }
 
     open(pokemon) {
+        console.log(`Opening modal for: ${pokemon.name}`);
+        
         this.currentPokemon = pokemon;
+        
+        // Asegurarse de que el modal esté renderizado
         if (!this.modal) this.render();
         
         this.updateContent();
+        
+        // Mostrar modal
         this.modal.classList.remove('hidden');
         this.modal.classList.add('flex');
         document.body.classList.add('overflow-hidden');
         this.isOpen = true;
+        
+        console.log(`✅ Modal opened for: ${pokemon.name}`);
     }
 
     close() {
         if (!this.modal) return;
         
+        console.log('Closing modal');
+        
         this.modal.classList.add('hidden');
         this.modal.classList.remove('flex');
         document.body.classList.remove('overflow-hidden');
         this.isOpen = false;
+        
+        console.log('✅ Modal closed');
     }
 
     updateContent() {
-        if (!this.currentPokemon) return;
+        if (!this.currentPokemon || !this.modal) return;
         
         const modalBody = this.modal.querySelector('#modal-body');
         modalBody.innerHTML = `
             <div class="p-6">
                 <div class="flex items-center justify-between mb-6">
                     <h2 class="text-3xl font-bold capitalize">${this.currentPokemon.name}</h2>
-                    <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700 text-2xl font-bold">&times;</button>
                 </div>
                 
                 <div class="grid md:grid-cols-2 gap-6">
@@ -86,7 +106,7 @@ export class PokemonModal {
                              class="w-64 h-64 object-contain mx-auto mb-4">
                         <div class="flex gap-2 justify-center">
                             ${this.currentPokemon.types.map(type => `
-                                <span class="type-\${type} text-white px-3 py-1 rounded-full capitalize">\${type}</span>
+                                <span class="type-${type} text-white px-3 py-1 rounded-full capitalize">${type}</span>
                             `).join('')}
                         </div>
                     </div>
@@ -132,9 +152,10 @@ export class PokemonModal {
             </div>
         `;
 
-        // Attach close button listener
-        modalBody.querySelector('#close-modal-btn').addEventListener('click', () => {
-            this.close();
-        });
+        // Agregar evento al botón de cerrar
+        const closeBtn = modalBody.querySelector('#close-modal-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.close());
+        }
     }
-};
+}

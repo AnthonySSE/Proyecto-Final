@@ -18,6 +18,6 @@ export default defineConfig({
     }
   },
   optimizeDeps: {
-    include: []
-  }
+    include: ['@tensorflow/tfjs'],
+  },
 });

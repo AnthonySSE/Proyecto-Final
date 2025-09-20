@@ -12,7 +12,11 @@
   "devDependencies": {
     "vite": "^5.0.0"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow-models/mobilenet": "^2.1.1",
+    "@tensorflow/tfjs": "^4.22.0"
+  },
   "keywords": [
     "pokemon",
     "spa",

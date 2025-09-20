@@ -1,20 +1,23 @@
-import { PokemonService } from '../services/PokemonService.js';
-import { PokemonCard } from './PokemonCard.js';
-import { debounce } from '../utils/helpers.js'
+import { PokemonService } from "../services/PokemonService.js";
+import { PokemonCard } from "./PokemonCard.js";
+import { debounce } from "../utils/helpers.js";
 
+// Clase CatalogPage
 export class CatalogPage {
-    constructor() {
-        this.pokemonService = new PokemonService();
-        this.pokemonData = [];
-        this.filteredPokemon = [];
-        this.searchTerm = '';
-        this.typeFilter = '';
-    }
+  constructor() {
+    this.pokemonService = new PokemonService();
+    this.pokemonData = [];
+    this.filteredPokemon = [];
+    this.searchTerm = "";
+    this.typeFilter = "";
+    this.isLoading = false;
+  }
 
-    render() {
-        const page = document.createElement('div');
-        page.className = 'catalog-page py-8 bg-gray-100 min-h-screen';
-        page.innerHTML = `
+  // Renderización de la página
+  render() {
+    const page = document.createElement("div");
+    page.className = "catalog-page py-8 bg-gray-100 min-h-screen";
+    page.innerHTML = `
             <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-8">
                     <h1 class="text-4xl font-bold text-gray-800 mb-4">Catálogo Pokémon</h1>
@@ -66,78 +69,99 @@ export class CatalogPage {
             </section>
         `;
 
-        return page;
-    }
+    return page;
+  }
 
-    async onMount() {
-        this.attachEventListeners();
+  //Función de montaje para cargar los Pokémon
+  async onMount() {
+    if (!this.isDataLoaded) {
         await this.loadPokemon();
+    } else {
+        this.hideLoading();
+        this.displayPokemon(this.pokemonData);
+    }
+    this.attachEventListeners();
+    //Solo cargar si no hay datos o no se está cargando
+    if (this.pokemonData.length === 0 && !this.isLoading) {
+      await this.loadPokemon();
+    } else if (this.pokemonData.length > 0) {
+    // Si ya hay datos, mostrarlos inmediatamente
+      this.displayPokemon(this.pokemonData);
+    }
+  }
+
+  // Función para adjuntar los event listeners de la página
+  attachEventListeners() {
+    const searchInput = document.getElementById("search-input");
+    const typeFilter = document.getElementById("type-filter");
+
+    if (searchInput) {
+      searchInput.addEventListener(
+        "input",
+        debounce((e) => {
+          this.searchTerm = e.target.value;
+          this.filterAndDisplayPokemon();
+        }, 300)
+      );
     }
 
-    attachEventListeners() {
-        const searchInput = document.getElementById('search-input');
-        const typeFilter = document.getElementById('type-filter');
+    if (typeFilter) {
+      typeFilter.addEventListener("change", (e) => {
+        this.typeFilter = e.target.value;
+        this.filterAndDisplayPokemon();
+      });
+    }
+  }
 
-        if (searchInput) {
-            searchInput.addEventListener('input', debounce((e) => {
-                this.searchTerm = e.target.value;
-                this.filterAndDisplayPokemon();
-            }, 300));
-        }
+  // Función de carga de Pokémon
+  async loadPokemon() {
+    //Prevenir múltiples cargas simultáneas
+    if (this.isLoading) return;
 
-        if (typeFilter) {
-            typeFilter.addEventListener('change', (e) => {
-                this.typeFilter = e.target.value;
-                this.filterAndDisplayPokemon();
-            });
-        }
+    const loadingState = document.getElementById("loading-state");
+    const pokemonGrid = document.getElementById("pokemon-grid");
+
+    try {
+      this.isLoading = true;
+      loadingState.style.display = "block";
+      pokemonGrid.innerHTML = "";
+
+      this.pokemonData = await this.pokemonService.fetchPokemonBatch(1, 150);
+      this.filterAndDisplayPokemon();
+    } catch (error) {
+      console.error("Error loading Pokemon:", error);
+      pokemonGrid.innerHTML =
+        '<div class="col-span-full text-center text-red-600">Error cargando Pokémon. Inténtalo de nuevo.</div>';
+    } finally {
+      this.isLoading = false;
+      loadingState.style.display = "none";
+    }
+  }
+
+  // Función para filtrar y mostrar Pokémon
+  filterAndDisplayPokemon() {
+    this.filteredPokemon = this.pokemonService.filterPokemon(
+      this.pokemonData,
+      this.searchTerm,
+      this.typeFilter
+    );
+    this.displayPokemon(this.filteredPokemon);
+  }
+
+  // Función para mostrar Pokémon
+  displayPokemon(pokemonList) {
+    const pokemonGrid = document.getElementById("pokemon-grid");
+
+    if (pokemonList.length === 0) {
+      pokemonGrid.innerHTML =
+        '<div class="col-span-full text-center text-gray-600">No se encontraron Pokémon con esos criterios.</div>';
+      return;
     }
 
-    async loadPokemon() {
-        if (this.pokemonData.length > 0) {
-            this.displayPokemon(this.pokemonData);
-            return;
-        }
-
-        const loadingState = document.getElementById('loading-state');
-        const pokemonGrid = document.getElementById('pokemon-grid');
-        
-        try {
-            loadingState.style.display = 'block';
-            pokemonGrid.innerHTML = '';
-            
-            this.pokemonData = await this.pokemonService.fetchPokemonBatch(1, 150);
-            this.filterAndDisplayPokemon();
-            
-        } catch (error) {
-            console.error('Error loading Pokemon:', error);
-            pokemonGrid.innerHTML = '<div class="col-span-full text-center text-red-600">Error cargando Pokémon. Inténtalo de nuevo.</div>';
-        } finally {
-            loadingState.style.display = 'none';
-        }
-    }
-
-    filterAndDisplayPokemon() {
-        this.filteredPokemon = this.pokemonService.filterPokemon(
-            this.pokemonData, 
-            this.searchTerm, 
-            this.typeFilter
-        );
-        this.displayPokemon(this.filteredPokemon);
-    }
-
-    displayPokemon(pokemonList) {
-        const pokemonGrid = document.getElementById('pokemon-grid');
-        
-        if (pokemonList.length === 0) {
-            pokemonGrid.innerHTML = '<div class="col-span-full text-center text-gray-600">No se encontraron Pokémon con esos criterios.</div>';
-            return;
-        }
-        
-        pokemonGrid.innerHTML = '';
-        pokemonList.forEach(pokemon => {
-            const pokemonCard = new PokemonCard(pokemon);
-            pokemonGrid.appendChild(pokemonCard.render());
-        });
-    }
-};
+    pokemonGrid.innerHTML = "";
+    pokemonList.forEach((pokemon) => {
+      const pokemonCard = new PokemonCard(pokemon);
+      pokemonGrid.appendChild(pokemonCard.render());
+    });
+  }
+}

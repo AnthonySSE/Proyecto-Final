@@ -1,11 +1,16 @@
+//Componente para la página de principal
 export class HomePage {
+    constructor(router = null) {
+        this.router = router;
+    }
+
     render() {
-        const page = document.createElement('div');
-        page.className = 'home-page';
+        const page = document.createElement("div");
+        page.className = "page";
         page.innerHTML = `
             <section class="gradient-bg text-white py-20">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h1 class="text-5xl md:text-6xl font-bold mb-6">Pokédex IA</h1>
+                    <h1 class="text-5xl md:text-6xl font-bold mb-6">Pokédx IA</h1>
                     <p class="text-xl md:text-2xl mb-8 max-w-3xl mx-auto">
                         Explora el mundo Pokémon con tecnología de inteligencia artificial. 
                         Descubre, analiza y aprende sobre tus Pokémon favoritos.
@@ -32,7 +37,7 @@ export class HomePage {
                                 </svg>
                             </div>
                             <h3 class="text-xl font-semibold mb-2">Búsqueda Avanzada</h3>
-                            <p class="text-gray-600">Encuentra cualquier Pokémon por nombre, tipo o número de la Pokédex.</p>
+                            <p class="text-gray-600">Encuentra cualquier Pokémon por nombre, tipo o número de la Pokédx.</p>
                         </div>
                         <div class="text-center p-6">
                             <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -56,18 +61,60 @@ export class HomePage {
                 </div>
             </section>
         `;
-
         return page;
     }
 
-    onMount() {
-        // Attach event listeners after component is mounted
-        document.getElementById('explore-catalog-btn')?.addEventListener('click', () => {
-            window.dispatchEvent(new CustomEvent('navigate', { detail: '/catalog' }));
-        });
-
-        document.getElementById('try-ai-btn')?.addEventListener('click', () => {
-            window.dispatchEvent(new CustomEvent('navigate', { detail: '/ai-detector' }));
-        });
+    // Activar onMount()
+    onMount() {        
+        // Obtener el router de múltiples fuentes posibles
+        const router = this.router || window.router || window.appRouter;
+        
+        if (!router) {
+            console.error('Router not available in HomePage. Retrying in 100ms...');
+            // Reintentar después de un pequeño delay
+            setTimeout(() => this.setupButtons(), 100);
+            return;
+        }
+        
+        this.setupButtons(router);
     }
-};
+    //Configurar botones de HomePage
+    setupButtons(router = null) {
+        const finalRouter = router || this.router || window.router || window.appRouter;
+        
+        if (!finalRouter) {
+            return;
+        }
+        
+        const exploreCatalogBtn = document.getElementById("explore-catalog-btn");
+        const tryAiBtn = document.getElementById("try-ai-btn");
+
+        if (exploreCatalogBtn) {
+            // Limpiar listeners previos
+            exploreCatalogBtn.replaceWith(exploreCatalogBtn.cloneNode(true));
+            const newExploreBtn = document.getElementById("explore-catalog-btn");
+            
+            newExploreBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                finalRouter.navigate("/catalog");
+            });
+        } else {
+            console.error('Botón de exploración del catálogo no encontrado.');
+        }
+
+        if (tryAiBtn) {
+            // Limpiar listeners previos
+            tryAiBtn.replaceWith(tryAiBtn.cloneNode(true));
+            const newTryAiBtn = document.getElementById("try-ai-btn");
+            
+            newTryAiBtn.addEventListener("click", (e) => {
+                e.preventDefault();
+                console.log('Navigate to AI detector clicked');
+                finalRouter.navigate("/ai-detector");
+            });
+            
+        } else {
+            console.error('Botón de Probar IA no encontrado.');
+        }
+    }
+}
