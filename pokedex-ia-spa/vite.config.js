@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/proyecto-final/pokedex-ia-spa/',
+  base: 'https://anthonysse.github.io/Proyecto-Final/pokedex-ia-spa/',
   server: {
     port: 3000,
     open: true,
